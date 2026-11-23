@@ -6,7 +6,7 @@ import http from 'node:http';
 // (streaming, tool_use round-trip, retries, error fallback) without a network or API key.
 process.env.NODE_ENV = 'test';
 process.env.LLM_PROVIDER = 'anthropic';
-process.env.ANTHROPIC_API_KEY = 'test-key';
+process.env.ANTHROPIC_API_KEY = 'sk-ant-test-key';
 
 const sse = (events) => events.map((e) => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
 const msgStart = { type: 'message_start', message: { id: 'msg_1', type: 'message', role: 'assistant', content: [], model: 'x', stop_reason: null, stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } } };

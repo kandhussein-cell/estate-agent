@@ -15,13 +15,14 @@ export const config = {
   dbPath: path.resolve(ROOT, process.env.DB_PATH || './data/app.db'),
   llm: {
     provider: process.env.LLM_PROVIDER || 'auto',
-    apiKey: process.env.ANTHROPIC_API_KEY || '',
+    apiKey: (process.env.ANTHROPIC_API_KEY || '').startsWith('sk-ant') ? process.env.ANTHROPIC_API_KEY : '',
     model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5',
     timeoutMs: 30000,
     retries: 1,
   },
   gemini: {
-    apiKey: process.env.GEMINI_API_KEY || '',
+    // A Gemini key pasted into the ANTHROPIC_API_KEY box (anything not starting with sk-ant) is detected and used as Gemini.
+    apiKey: process.env.GEMINI_API_KEY || (process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.startsWith('sk-ant') ? process.env.ANTHROPIC_API_KEY : ''),
     models: (process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite,gemini-3.5-flash,gemini-3.8-flash').split(',').map((m) => m.trim()).filter(Boolean),
   },
   whatsapp: {
