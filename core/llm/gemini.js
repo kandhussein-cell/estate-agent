@@ -39,20 +39,24 @@ export function toGeminiContents(messages) {
   return contents;
 }
 
+const stripThinking = (body) => { const o = JSON.parse(body); delete o.generationConfig.thinkingConfig; return JSON.stringify(o); };
+
 async function openStream(body) {
   const models = config.gemini.models;
+  let noThinking = false;
   let last;
   for (let attempt = 0; attempt < models.length + 1; attempt++) {
     const model = models[attempt % models.length];
     try {
-      const res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.gemini.apiKey }, body, signal: AbortSignal.timeout(config.llm.timeoutMs) });
+      const res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.gemini.apiKey }, body: noThinking ? stripThinking(body) : body, signal: AbortSignal.timeout(8000) }); // fail over to the next model quickly instead of waiting on a slow one
       if (res.ok) return res;
       const txt = (await res.text()).slice(0, 300);
       last = Object.assign(new Error(`Gemini ${res.status}: ${txt}`), { status: res.status });
       log.warn('gemini_http', { model, status: res.status });
+      if (res.status === 400 && /thinking/i.test(txt) && !noThinking) { noThinking = true; attempt--; continue; } // model does not support the setting
       if (![429, 500, 503].includes(res.status)) throw last;
     } catch (e) { last = e; if (e.status && ![429, 500, 503].includes(e.status)) throw e; }
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 150));
   }
   throw last;
 }
@@ -66,7 +70,7 @@ export async function complete({ system, messages, tools, onText }) {
     systemInstruction: { parts: [{ text: system }] },
     contents: toGeminiContents(messages),
     ...(tools?.length ? { tools: [{ functionDeclarations: tools.map((t) => (Object.keys(t.input_schema.properties || {}).length ? { name: t.name, description: t.description, parameters: cleanSchema(t.input_schema) } : { name: t.name, description: t.description })) }] } : {}),
-    generationConfig: { maxOutputTokens: 1024, temperature: 0.6 },
+    generationConfig: { maxOutputTokens: 1024, temperature: 0.6, thinkingConfig: { thinkingLevel: 'minimal' } }, // minimal thinking = much faster first token
   });
   const res = await openStream(body);
   const reader = res.body.getReader(); const dec = new TextDecoder();

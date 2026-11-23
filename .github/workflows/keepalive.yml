@@ -1,0 +1,11 @@
+name: keep-demo-awake
+# Pings the free Render instance so the first customer does not wait 30-50s for a cold start.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -m 60 https://estate-agent-6v5a.onrender.com/healthz || true

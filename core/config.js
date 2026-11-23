@@ -31,7 +31,7 @@ export const config = {
   gemini: {
     // A Gemini key pasted into the ANTHROPIC_API_KEY box (anything not starting with sk-ant) is detected and used as Gemini.
     apiKey: env('GEMINI_API_KEY') || (env('ANTHROPIC_API_KEY') && !env('ANTHROPIC_API_KEY').startsWith('sk-ant') ? env('ANTHROPIC_API_KEY') : ''),
-    models: (process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite,gemini-3.5-flash,gemini-3.8-flash').split(',').map((m) => m.trim()).filter(Boolean),
+    models: (process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite,gemini-flash-lite-latest,gemini-3.1-flash-lite').split(',').map((m) => m.trim()).filter(Boolean),
   },
   whatsapp: {
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN || '',
