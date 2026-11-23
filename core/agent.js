@@ -6,7 +6,7 @@ import { getProvider, providerName } from './llm/index.js';
 import { T } from './llm/i18n.js';
 import { detectLanguage } from './lang.js';
 import { looksLikeInjection, rateLimitConversation, sanitizeInput } from './guard.js';
-import { addMessage, getConversation, getLead, getMessages, getOrCreateConversation, recomputeLead } from './store.js';
+import { addMessage, getConversation, getLead, getMessages, getOrCreateConversation, recomputeLead, withSettings } from './store.js';
 import { bus, emitEvent } from './events.js';
 import { maybeSummarize } from './summarize.js';
 import { log } from './logger.js';
@@ -130,7 +130,7 @@ export async function handleMessage({ officeId, conversationId, externalId, chan
     const rows = getMessages(db, conv.id, conv.summary_upto);
     const messages = toLlmMessages(rows);
     const toolNotes = rows.filter((r) => r.role === 'assistant' && r.meta.notes?.length).slice(-3).flatMap((r) => r.meta.notes);
-    const system = buildSystemPrompt(office, { lead, conversation: conv, viewings, summary: conv.summary, injectionFlag: injection, toolNotes });
+    const system = buildSystemPrompt(withSettings(db, office), { lead, conversation: conv, viewings, summary: conv.summary, injectionFlag: injection, toolNotes });
     const userHistory = rows.filter((r) => r.role === 'user').map((r) => r.content).slice(-30);
     const ctx = { db, office, conversationId: conv.id, language, now, touch: () => {} };
     let state = { ...conv.state };

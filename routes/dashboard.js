@@ -6,14 +6,15 @@ import { getDb, j } from '../core/db.js';
 import { getOffice, listOffices } from '../core/offices.js';
 import { checkPin, makeSession, requireAuth } from '../core/auth.js';
 import { bus, emitEvent } from '../core/events.js';
-import { getConversation, getLead, getListing, getMessages, leadRow, listingRow, recomputeLead } from '../core/store.js';
+import { getConversation, getLead, getListing, getMessages, getSettings, saveSettings, leadRow, listingRow, recomputeLead } from '../core/store.js';
 import { validateInput } from '../core/validate.js';
 import { deliver } from '../core/delivery.js';
 import { runFollowups, sendFollowup } from '../core/followups.js';
 import { seedDemo } from '../core/seed.js';
 import { nowLocal, addDays } from '../core/time.js';
 import { ROOT, config } from '../core/config.js';
-import { FEATURE_KEYS } from '../core/areas.js';
+import { FEATURE_KEYS, canonicalArea, canonicalFeature } from '../core/areas.js';
+import { parseCsv, LISTING_CSV_TEMPLATE } from '../core/csv.js';
 
 export const dashRouter = Router();
 const officeOf = (req) => getOffice(req.query.office);
@@ -216,6 +217,49 @@ dashRouter.post('/demo/reset', (req, res) => {
   if (!config.demoMode) return res.status(403).json({ error: 'demo mode is off' });
   const o = officeOf(req); seedDemo(getDb(), o); emitEvent(o.id, 'reset', {});
   res.json({ ok: true });
+});
+
+/* ---------------- company info + CSV import (so each office can load its own data) ---------------- */
+dashRouter.get('/company', (req, res) => {
+  const o = officeOf(req);
+  const s = getSettings(getDb(), o.id);
+  res.json({ about: s.about, faq: s.faq, baseFaq: o.faq || [] });
+});
+dashRouter.put('/company', (req, res) => {
+  const o = officeOf(req);
+  const about = String(req.body?.about ?? '').slice(0, 3000);
+  const faq = (Array.isArray(req.body?.faq) ? req.body.faq : []).slice(0, 60)
+    .map((f) => ({ q: String(f?.q ?? '').trim().slice(0, 300), a: String(f?.a ?? '').trim().slice(0, 1000) })).filter((f) => f.q && f.a);
+  saveSettings(getDb(), o.id, { about, faq });
+  emitEvent(o.id, 'company_changed', {});
+  res.json({ about, faq });
+});
+
+dashRouter.get('/listings-template', (req, res) => {
+  res.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="listings-template.csv"' }).send(LISTING_CSV_TEMPLATE);
+});
+dashRouter.post('/listings/import', (req, res) => {
+  const db = getDb(); const o = officeOf(req);
+  const rows = parseCsv(req.body?.csv).slice(0, 500);
+  if (!rows.length) return res.status(400).json({ error: 'No rows found. Use the template: first line = column names.' });
+  const yes = (v) => /^(1|yes|y|true|ye|نعم|oui)$/i.test(String(v || '').trim());
+  const ins = db.prepare(`INSERT INTO listings (office_id,ref,title,type,category,area,price,bedrooms,bathrooms,size_m2,furnished,features,description,available,agent_id,hue) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)`);
+  const errors = []; let imported = 0;
+  let n = db.prepare('SELECT COUNT(*) n FROM listings WHERE office_id=?').get(o.id).n;
+  db.transaction(() => {
+    rows.forEach((r, i) => {
+      const feats = String(r.features || '').split(/[;|]/).map((x) => canonicalFeature(x.trim())).filter(Boolean);
+      const v = validateInput(LISTING, { title: r.title, type: String(r.type || '').toLowerCase(), category: String(r.category || 'apartment').toLowerCase(), area: canonicalArea(r.area) || r.area, price: r.price,
+        bedrooms: r.bedrooms || 0, bathrooms: r.bathrooms || 0, size_m2: r.size_m2 || 0, furnished: yes(r.furnished), features: feats, description: r.description, agent_id: r.agent_id });
+      if (!v.ok) { errors.push({ row: i + 2, error: v.errors.join('; ') }); return; }
+      const a = v.value; n += 1;
+      const agent = o.agents.some((x) => x.id === a.agent_id) ? a.agent_id : o.agents[0].id;
+      ins.run(o.id, `${o.brand.logoText}-${String(n).padStart(3, '0')}`, a.title, a.type, a.category, a.area, a.price, a.bedrooms ?? 0, a.bathrooms ?? 1, a.size_m2 ?? 0, a.furnished ? 1 : 0, JSON.stringify(a.features || []), a.description ?? '', agent, Math.floor(Math.random() * 300));
+      imported += 1;
+    });
+  })();
+  emitEvent(o.id, 'listing_changed', { imported });
+  res.json({ imported, errors: errors.slice(0, 20), skipped: errors.length });
 });
 dashRouter.get('/offices', (req, res) => res.json(listOffices().map((id) => ({ id, name: getOffice(id).name, brand: getOffice(id).brand }))));
 export { j, getConversation };

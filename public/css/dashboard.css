@@ -186,7 +186,7 @@ dialog footer { padding: 12px 24px 20px; display: flex; gap: 8px; justify-conten
   .shell { grid-template-columns: 1fr; }
   .side { display: none; }
   .top { padding: 10px 16px; } .page { padding: 16px; padding-bottom: 88px; }
-  .bottom-nav { display: grid; grid-template-columns: repeat(6, 1fr); position: fixed; bottom: 0; inset-inline: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+  .bottom-nav { display: grid; grid-template-columns: repeat(7, 1fr); position: fixed; bottom: 0; inset-inline: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
   .bottom-nav a { display: grid; justify-items: center; gap: 2px; font-size: 10.5px; color: var(--text-3); text-decoration: none; font-weight: 600; padding: 4px 0; border-radius: 10px; }
   .bottom-nav a[aria-current='page'] { color: var(--brand-text); background: var(--brand-soft); }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

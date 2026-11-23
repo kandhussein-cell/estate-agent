@@ -4,9 +4,9 @@ initTheme();
 const params = new URLSearchParams(location.search);
 const STAGES = ['new', 'qualified', 'viewing', 'negotiation', 'closed'];
 const L = {
-  en: { overview: 'Overview', pipeline: 'Pipeline', viewings: 'Viewings', listings: 'Listings', owners: 'Owners', analytics: 'Analytics', new: 'New', qualified: 'Qualified', viewing: 'Viewing booked', negotiation: 'Negotiation', closed: 'Closed',
+  en: { overview: 'Overview', pipeline: 'Pipeline', viewings: 'Viewings', listings: 'Listings', owners: 'Owners', company: 'Company info', analytics: 'Analytics', new: 'New', qualified: 'Qualified', viewing: 'Viewing booked', negotiation: 'Negotiation', closed: 'Closed',
     kNew: 'New leads today', kHot: 'Hot leads', kView: 'Viewings this week', kResp: 'AI response time', kHand: 'Needs a human', kConv: 'Conversion', live: 'Live', logout: 'Log out', theme: 'Theme', demo: 'Demo controls', lang: 'العربية' },
-  ar: { overview: 'نظرة عامة', pipeline: 'مسار العملاء', viewings: 'الزيارات', listings: 'العقارات', owners: 'المالكون', analytics: 'التحليلات', new: 'جديد', qualified: 'مؤهَّل', viewing: 'زيارة محجوزة', negotiation: 'تفاوض', closed: 'مغلق',
+  ar: { overview: 'نظرة عامة', pipeline: 'مسار العملاء', viewings: 'الزيارات', listings: 'العقارات', owners: 'المالكون', company: 'معلومات الشركة', analytics: 'التحليلات', new: 'جديد', qualified: 'مؤهَّل', viewing: 'زيارة محجوزة', negotiation: 'تفاوض', closed: 'مغلق',
     kNew: 'عملاء جدد اليوم', kHot: 'عملاء ساخنون', kView: 'زيارات هالأسبوع', kResp: 'سرعة رد الذكاء', kHand: 'بحاجة لموظف', kConv: 'نسبة الإغلاق', live: 'مباشر', logout: 'خروج', theme: 'المظهر', demo: 'أدوات العرض', lang: 'English' },
 };
 const S = { office: null, offices: [], view: 'overview', lang: getLang('en'), kpis: null, leads: [], viewings: [], listings: [], owners: [], analytics: null, followups: [], feed: [], drawer: null, agentFilter: 'all', weekOffset: 0, live: false, es: null, demoMode: true, listingFilter: 'all' };
@@ -42,7 +42,7 @@ function start() {
 }
 
 /* ---------------- shell ---------------- */
-const NAV = [['overview', 'home'], ['pipeline', 'kanban'], ['viewings', 'cal'], ['listings', 'grid'], ['owners', 'key'], ['analytics', 'chart']];
+const NAV = [['overview', 'home'], ['pipeline', 'kanban'], ['viewings', 'cal'], ['listings', 'grid'], ['owners', 'key'], ['company', 'users'], ['analytics', 'chart']];
 function renderShell() {
   const o = S.office;
   const nav = h('nav.nav', { 'aria-label': 'Main' }, NAV.map(([k, ic]) => h('a', { href: `#${k}`, 'data-k': k, html: `${icon(ic, 18)}<span>${esc(t(k))}</span>${k === 'pipeline' ? '<span class="count hidden" id="hsCount"></span>' : ''}` })));
@@ -62,7 +62,7 @@ function go(view) {
   S.view = view; page()?.classList.remove("full");
   document.querySelectorAll('[data-k]').forEach((a) => (a.dataset.k === view ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
   $('#title').textContent = t(view);
-  ({ overview: vOverview, pipeline: vPipeline, viewings: vViewings, listings: vListings, owners: vOwners, analytics: vAnalytics })[view]();
+  ({ overview: vOverview, pipeline: vPipeline, viewings: vViewings, listings: vListings, owners: vOwners, analytics: vAnalytics, company: vCompany })[view]();
 }
 
 /* ---------------- helpers: states ---------------- */
@@ -216,7 +216,7 @@ async function vListings() {
   await loadInto(p, async () => {
     S.listings = await A('/listings');
     const rows = S.listings.filter((l) => S.listingFilter === 'all' || l.type === S.listingFilter);
-    const seg = h('div.tools', {}, ['all', 'sale', 'rent'].map((f) => h('button.btn.sm', { class: S.listingFilter === f ? 'primary' : '', onclick: () => { S.listingFilter = f; vListings(); } }, f === 'all' ? `All (${S.listings.length})` : f === 'sale' ? 'For sale' : 'For rent')), h('div', { style: { flex: 1 } }), h('button.btn.primary', { onclick: () => listingDialog(), html: `${icon('plus', 16)} Add listing` }));
+    const seg = h('div.tools', {}, ['all', 'sale', 'rent'].map((f) => h('button.btn.sm', { class: S.listingFilter === f ? 'primary' : '', onclick: () => { S.listingFilter = f; vListings(); } }, f === 'all' ? `All (${S.listings.length})` : f === 'sale' ? 'For sale' : 'For rent')), h('div', { style: { flex: 1 } }), h('button.btn', { onclick: importDialog, html: `${icon('inbox', 16)} Import CSV` }), h('button.btn.primary', { onclick: () => listingDialog(), html: `${icon('plus', 16)} Add listing` }));
     const table = h('table.tbl', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Property'), h('th', {}, 'Price'), h('th.hide-m', {}, 'Details'), h('th.hide-m', {}, 'Viewings'), h('th', {}, 'Available'), h('th'))),
       h('tbody', {}, rows.map((l) => h('tr', {}, h('td', {}, h('div.cellrow', {}, h('div.thumb', { style: { backgroundImage: `url("${listingImg(l)}")` } }), h('div', {}, h('b', {}, l.title), h('small', {}, `${l.ref} · ${l.area} · ${l.category}`)))),
         h('td', {}, h('b', {}, money(l.price, l.type === 'rent')), h('small', { style: { display: 'block', color: 'var(--text-3)' } }, l.type)),
@@ -285,6 +285,48 @@ async function vAnalytics() {
   }, vAnalytics);
 }
 
+
+/* ---------------- company info (what the AI knows about the office) ---------------- */
+async function vCompany() {
+  const p = page(); p.replaceChildren(skel(3, 120));
+  await loadInto(p, async () => {
+    const c = await A('/company');
+    const rows = c.faq.length ? c.faq.map((f) => ({ ...f })) : [{ q: '', a: '' }];
+    const about = h('textarea.textarea', { 'aria-label': 'About the company', maxlength: 3000, placeholder: 'Who you are, years of experience, areas you cover, what makes you different, languages your team speaks…', style: { minHeight: '120px' } }, c.about || '');
+    const list = h('div', { style: { display: 'grid', gap: '12px' } });
+    const draw = () => list.replaceChildren(...rows.map((r, i) => h('div.card-box', { style: { padding: '12px', display: 'grid', gap: '8px' } },
+      h('input.input', { placeholder: 'Question customers ask (e.g. What is your commission?)', value: r.q, 'aria-label': `Question ${i + 1}`, oninput: (e) => { r.q = e.target.value; } }),
+      h('textarea.textarea', { placeholder: 'The exact answer the assistant may give', 'aria-label': `Answer ${i + 1}`, style: { minHeight: '64px' }, oninput: (e) => { r.a = e.target.value; } }, r.a),
+      h('div', { style: { textAlign: 'end' } }, h('button.btn.sm.ghost.danger', { type: 'button', onclick: () => { rows.splice(i, 1); if (!rows.length) rows.push({ q: '', a: '' }); draw(); }, html: `${icon('trash', 14)} Remove` })))));
+    draw();
+    const msg = h('span', { style: { color: 'var(--good)', fontWeight: 600 } });
+    p.replaceChildren(
+      h('div.card-box', {}, h('header', {}, h('h2', {}, 'About the company')), h('div.pad', { style: { display: 'grid', gap: '8px' } }, h('small', { style: { color: 'var(--text-3)' } }, 'The assistant uses this to answer “who are you / what do you do”. Write facts only — it will not invent anything beyond this text.'), about)),
+      h('div.card-box', {}, h('header', {}, h('h2', {}, 'Questions & answers'), h('button.btn.sm', { onclick: () => { rows.push({ q: '', a: '' }); draw(); }, html: `${icon('plus', 14)} Add` })),
+        h('div.pad', { style: { display: 'grid', gap: '12px' } }, h('small', { style: { color: 'var(--text-3)' } }, 'Commission, documents needed, viewing process, payment plans, opening hours… Anything not listed here is handed to a human agent.'), list)),
+      h('div', { style: { display: 'flex', gap: '12px', alignItems: 'center' } }, h('button.btn.primary', { onclick: async () => { const r = await A('/company', { method: 'PUT', body: { about: about.value, faq: rows } }); msg.textContent = `Saved — the assistant now knows ${r.faq.length} answer(s).`; toast('Company info saved'); } }, 'Save'), msg));
+  }, vCompany);
+}
+
+/* ---------------- CSV import of listings ---------------- */
+function importDialog() {
+  const area = h('textarea.textarea', { placeholder: 'Paste CSV here, or choose a file below…', style: { minHeight: '140px', fontFamily: 'monospace', fontSize: '12px' }, 'aria-label': 'CSV text' });
+  const file = h('input', { type: 'file', accept: '.csv,text/csv,text/plain', 'aria-label': 'CSV file', onchange: async (e) => { const f = e.target.files[0]; if (f) area.value = await f.text(); } });
+  const out = h('div', { role: 'status', style: { fontSize: '14px' } });
+  const go = h('button.btn.primary', { type: 'button', onclick: async () => {
+    out.textContent = 'Importing…';
+    try {
+      const r = await A('/listings/import', { method: 'POST', body: { csv: area.value } });
+      out.replaceChildren(h('b', { style: { color: 'var(--good)' } }, `${r.imported} listing(s) imported.`), r.skipped ? h('div', { style: { color: 'var(--bad)', marginTop: '6px' } }, `${r.skipped} row(s) skipped: `, r.errors.map((x) => `row ${x.row} (${x.error})`).join(' · ')) : null);
+      if (r.imported) { toast(`${r.imported} listings imported`); vListings(); }
+    } catch (e) { out.replaceChildren(h('span', { style: { color: 'var(--bad)' } }, e.message)); }
+  } }, 'Import');
+  const dlg = h('dialog', {}, h('header', {}, h('h2', {}, 'Import listings from CSV'), h('button.btn.icon.sm.ghost', { type: 'button', 'aria-label': 'Close', onclick: () => dlg.close(), html: icon('close', 18) })),
+    h('div.body', {}, h('div', { style: { color: 'var(--text-2)', fontSize: '14px' } }, 'One listing per row. Columns: title, type (rent/sale), category, area, price (USD), bedrooms, bathrooms, size_m2, furnished (yes/no), features (separated by ;), description, agent_id. Excel: Save As → CSV.'),
+      h('a.btn.sm', { href: `/api/dash/listings-template?${officeQ()}`, download: 'listings-template.csv' }, 'Download template'), file, area, out),
+    h('footer', {}, h('button.btn', { type: 'button', onclick: () => dlg.close() }, 'Close'), go));
+  document.body.append(dlg); dlg.addEventListener('close', () => dlg.remove()); dlg.showModal();
+}
 /* ---------------- demo controls ---------------- */
 function openDemo() {
   const dlg = h('dialog', {}, h('div.body', { style: { padding: '24px' } }, h('h2', { style: { margin: 0 } }, 'Demo controls'),

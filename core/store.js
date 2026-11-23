@@ -80,3 +80,20 @@ export function recomputeLead(db, office, leadId) {
 }
 
 export const nowFor = (office) => nowLocal(office);
+
+/** Per-office editable settings stored in the DB (company description + FAQ), layered over offices/<id>.json. */
+export function getSettings(db, officeId) {
+  const rows = db.prepare('SELECT key,value FROM office_settings WHERE office_id=?').all(officeId);
+  const m = Object.fromEntries(rows.map((r) => [r.key, j(r.value)]));
+  return { about: m.about || '', faq: Array.isArray(m.faq) ? m.faq : [] };
+}
+export function saveSettings(db, officeId, { about, faq }) {
+  const up = db.prepare('INSERT INTO office_settings (office_id,key,value) VALUES (?,?,?) ON CONFLICT(office_id,key) DO UPDATE SET value=excluded.value');
+  up.run(officeId, 'about', JSON.stringify(about || ''));
+  up.run(officeId, 'faq', JSON.stringify(faq || []));
+}
+/** Office config merged with its dashboard-edited settings. */
+export function withSettings(db, office) {
+  const s = getSettings(db, office.id);
+  return { ...office, about: s.about, faq: [...(office.faq || []), ...s.faq] };
+}

@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT, office_id TEXT NOT NULL, type TEXT NOT NULL, payload TEXT DEFAULT '{}',
   created_at TEXT DEFAULT (datetime('now')));
 CREATE TABLE IF NOT EXISTS rate_hits (key TEXT, ts INTEGER);
+CREATE TABLE IF NOT EXISTS office_settings (office_id TEXT NOT NULL, key TEXT NOT NULL, value TEXT, PRIMARY KEY (office_id, key));
 `;
 
 let db;
