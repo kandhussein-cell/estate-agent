@@ -13,7 +13,7 @@ import { log } from './logger.js';
 
 const MAX_TOOL_ROUNDS = 5;
 // words a model uses to claim a viewing is booked / a property registered (en/fr/ar/arabizi)
-const CLAIM = /(booked|confirmed|reserved|registered|c.est r[eé]serv|r[eé]serv[eé]|confirm[eé]e?\b|enregistr[eé]|تم (ال)?(حجز|تأكيد|تسجيل)|حجزت|تأكدت|تثبت|سجلت|et2akad|7ajazt|thabbat)/i;
+const CLAIM = /((is|are|been|now|successfully|all|you're|you are) (booked|confirmed|set|registered)|booked (for|you|your)|(your|the) (viewing|visit|appointment)[^.!?]{0,40}(confirmed|booked)|confirmed (for|your)|i('ve| have) (booked|registered)|c.est (r[eé]serv|confirm)|(est|sont) (r[eé]serv|confirm)|r[eé]servation (est )?confirm|تم (ال)?(حجز|تأكيد|تسجيل)|حجزتلك|تأكدت الزيارة|ثبّ?تت ال|et2akadet el ziyara|7ajazt)/i;
 
 /** Strips the hidden <chips>…</chips> suffix from a token stream and collects its options. */
 export class ChipFilter {
