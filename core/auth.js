@@ -5,7 +5,7 @@ const sign = (data) => crypto.createHmac('sha256', config.sessionSecret).update(
 const safeEq = (a, b) => { const x = Buffer.from(a); const y = Buffer.from(b); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
 /** Constant-time PIN check. */
-export const checkPin = (pin) => safeEq(String(pin ?? ''), config.dashboardPin);
+export const checkPin = (pin) => !!config.dashboardPin && safeEq(String(pin ?? ''), config.dashboardPin);
 
 /** Dashboard session token: `<expiryMs>.<sig>` (8h). */
 export function makeSession() { const exp = String(Date.now() + 8 * 3600e3); return `${exp}.${sign(`dash:${exp}`)}`; }
