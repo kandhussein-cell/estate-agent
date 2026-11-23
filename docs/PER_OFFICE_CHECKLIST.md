@@ -30,3 +30,8 @@
 - [ ] Read `core/prompt.js` rules together (handoff triggers, price negotiation policy, disclaimers)
 - [ ] Decide who receives handoffs and how fast they must respond
 - [ ] Test the 6 scenarios on their real number: Arabizi rent, English buy, French, owner listing, angry customer, off-topic
+
+**Office knowledge (so the AI answers questions about *your* office)**
+- [ ] Add `"faq": [{ "q": "What is your commission?", "a": "..." }, ...]` to `offices/<id>.json` (fees, documents needed, viewing process, payment plans, opening hours, parking, languages spoken).
+- [ ] The AI answers office questions ONLY from this list; anything missing is handed to a human agent. Never put guesses in it.
+- [ ] Inventory is entered in *Dashboard -> Listings* (title, price, area, size, features, photos); the AI never invents beyond it.

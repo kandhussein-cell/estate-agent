@@ -54,6 +54,16 @@ test('history conversion alternates roles, starts with user, adds tool notes', (
   assert.equal(m[1].content, 'r', 'tool notes are NOT inlined in assistant text (models imitate them)');
 });
 
+test('office FAQ is injected into the prompt as the only source for office questions', async () => {
+  const { buildSystemPrompt } = await import('../core/prompt.js');
+  const { getOffice } = await import('../core/offices.js');
+  const office = { ...getOffice('beirut-homes'), faq: [{ q: 'What is your commission?', a: '2% from the buyer.' }] };
+  const p = buildSystemPrompt(office, {});
+  assert.match(p, /ANSWER FIRST/);
+  assert.match(p, /Q: What is your commission\?\n {2}A: 2% from the buyer\./);
+  assert.ok(!/Office facts/.test(buildSystemPrompt(getOffice('beirut-homes'), {})), 'no FAQ section when empty');
+});
+
 test('validator coerces numeric strings and enforces ranges/enums', () => {
   const s = { type: 'object', properties: { n: { type: 'integer', minimum: 1 }, e: { type: 'string', enum: ['a'] } } };
   assert.deepEqual(validate(s, { n: '3' }).value, { n: 3 });
