@@ -2,23 +2,19 @@ services:
   - type: web
     name: estate-agent
     runtime: node
-    plan: starter            # persistent disks need a paid plan
+    plan: free               # free: sleeps when idle, data resets on restart (demo data is re-seeded). Use starter + disk for production.
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /healthz
-    disk:
-      name: data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: DB_PATH
-        value: /var/data/app.db
+        value: ./data/app.db
       - key: DEFAULT_OFFICE
         value: beirut-homes
       - key: DEMO_MODE
-        value: "true"          # set to "false" for a real customer
+        value: "true"
       - key: GEMINI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
