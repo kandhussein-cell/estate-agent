@@ -1,0 +1,29 @@
+{
+  "name": "Cedar Properties",
+  "tagline": "Mount Lebanon & the North, made simple",
+  "brand": { "primary": "#2d4a3e", "accent": "#c8553d", "logoText": "CP", "logo": null },
+  "timezone": "Asia/Beirut",
+  "currency": "USD",
+  "languages": ["ar", "en", "fr"],
+  "tone": "calm, trustworthy, concise",
+  "phone": "+961 9 444 200",
+  "hours": { "days": [1, 2, 3, 4, 5], "open": "08:30", "close": "17:00", "label": "Mon–Fri, 8:30–17:00" },
+  "greeting": {
+    "en": "Welcome to Cedar Properties! I'm Maya. Are you looking to buy, rent, or list a property?",
+    "ar": "أهلاً فيك بـ Cedar Properties! أنا مايا. بتدور على شراء، إيجار، أو عرض عقار؟",
+    "fr": "Bienvenue chez Cedar Properties ! Je suis Maya. Achat, location ou mise en vente ?"
+  },
+  "assistantName": "Maya",
+  "quickReplies": {
+    "en": ["Rent an apartment", "Buy a property", "List my property"],
+    "ar": ["بدي إستأجر", "بدي إشتري", "بدي عرض عقاري"],
+    "fr": ["Louer", "Acheter", "Mettre en vente"]
+  },
+  "areas": ["Jounieh", "Jal el Dib", "Dbayeh", "Broummana", "Batroun", "Tripoli"],
+  "viewingMinutes": 45,
+  "agents": [
+    { "id": "maya", "name": "Maya Rahme", "title": "Sales Agent", "phone": "+961 70 900 100", "schedule": { "days": [1, 2, 3, 4, 5], "start": "09:00", "end": "16:30" } },
+    { "id": "tony", "name": "Tony Abi Nader", "title": "Sales Agent", "phone": "+961 76 800 200", "schedule": { "days": [1, 2, 3, 4, 5], "start": "10:00", "end": "17:00" } }
+  ],
+  "seedProfile": "north"
+}

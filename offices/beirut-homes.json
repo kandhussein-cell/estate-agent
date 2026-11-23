@@ -1,0 +1,30 @@
+{
+  "name": "Beirut Homes",
+  "tagline": "Find your place in Lebanon",
+  "brand": { "primary": "#0f4c5c", "accent": "#e09f3e", "logoText": "BH", "logo": null },
+  "timezone": "Asia/Beirut",
+  "currency": "USD",
+  "languages": ["ar", "en", "fr"],
+  "tone": "warm, professional, concise; light Lebanese touch in Arabic",
+  "phone": "+961 1 555 100",
+  "hours": { "days": [1, 2, 3, 4, 5, 6], "open": "09:00", "close": "18:00", "label": "Mon–Sat, 9:00–18:00" },
+  "greeting": {
+    "en": "Hi! 👋 I'm Layla from Beirut Homes. Looking to buy, rent, or list a property?",
+    "ar": "أهلاً! 👋 أنا ليلى من Beirut Homes. بتدور على شراء، إيجار، أو بدك تعرض عقارك؟",
+    "fr": "Bonjour ! 👋 Je suis Layla de Beirut Homes. Vous cherchez à acheter, louer ou mettre un bien en vente ?"
+  },
+  "assistantName": "Layla",
+  "quickReplies": {
+    "en": ["Rent an apartment", "Buy a property", "List my property"],
+    "ar": ["بدي إستأجر", "بدي إشتري", "بدي عرض عقاري"],
+    "fr": ["Louer", "Acheter", "Mettre en vente"]
+  },
+  "areas": ["Achrafieh", "Hamra", "Verdun", "Hadath", "Baabda", "Jounieh", "Jal el Dib", "Dbayeh", "Broummana", "Tripoli", "Batroun"],
+  "viewingMinutes": 45,
+  "agents": [
+    { "id": "karim", "name": "Karim Haddad", "title": "Senior Sales Agent", "phone": "+961 70 111 222", "schedule": { "days": [1, 2, 3, 4, 5], "start": "09:00", "end": "17:00" } },
+    { "id": "nadine", "name": "Nadine Khoury", "title": "Rentals Specialist", "phone": "+961 71 333 444", "schedule": { "days": [1, 2, 3, 4, 5, 6], "start": "10:00", "end": "18:00" } },
+    { "id": "elie", "name": "Elie Saab", "title": "Commercial & Land", "phone": "+961 03 555 666", "schedule": { "days": [2, 3, 4, 5, 6], "start": "09:00", "end": "16:00" } }
+  ],
+  "seedProfile": "full"
+}
